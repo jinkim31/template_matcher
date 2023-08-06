@@ -9,14 +9,13 @@
 
 using namespace ethr;
 
-class Application
+class Application : public EObject
 {
 public:
     Application();
     ~Application();
 private:
     void render();
-    EThread mainThread;
     Model model;
 };
 
