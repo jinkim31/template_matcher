@@ -19,12 +19,14 @@ public:
     LLINK_Error open();
     LLINK_Error close();
     bool search(int baudRate);
+    void cancelSearch();
 private:
     LLINK_Master* mLLinkMaster;
     bool mIsOpen;
     ETimer mTimer;
     std::string mPortName;
     EObjectRef<Model> mModelRef;
+    bool mSearchCancelFlag;
 };
 
 #endif

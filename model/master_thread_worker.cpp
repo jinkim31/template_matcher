@@ -31,6 +31,7 @@ void MasterThreadWorker::setPortName(const std::string portName)
 
 bool MasterThreadWorker::search(int baudRate)
 {
+    mSearchCancelFlag = false;
     LLINK_Master_setBaudRate(mLLinkMaster, baudRate);
     for(int i=0; i<256; i++)
     {
@@ -41,10 +42,14 @@ bool MasterThreadWorker::search(int baudRate)
             std::cout<<"found "<<i<<std::endl;
         }
 
-        std::cout<<"ping time: " <<std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - t).count()<<std::endl;
         mModelRef.callQueued(&Model::slaveSearchProgressReported, i);
     }
 
     return true;
+}
+
+void MasterThreadWorker::cancelSearch()
+{
+    mSearchCancelFlag = true;
 }
 

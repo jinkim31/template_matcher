@@ -6,15 +6,17 @@ Master::Master(const std::string &portName, Model *model)
     mIsOpen = false;
     mModel = model;
     mMasterThreadWorker.setPortName(portName);
-    masterAcquisitionThread.setName("masterAcqThread");
-    mMasterThreadWorker.moveToThread(masterAcquisitionThread);
-    masterAcquisitionThread.start();
+    mMasterAcquisitionThread.setName("masterAcqThread");
+    mMasterThreadWorker.moveToThread(mMasterAcquisitionThread);
+    mMasterAcquisitionThread.start();
 }
 
 Master::~Master()
 {
+    mMasterThreadWorker.callQueued(&MasterThreadWorker::close);
+    mMasterAcquisitionThread.waitForEventHandleCompletion();
     mMasterThreadWorker.removeFromThread();
-    masterAcquisitionThread.stop();
+    mMasterAcquisitionThread.stop();
 }
 
 void Master::open()
@@ -41,6 +43,11 @@ std::optional<bool> Master::isOpen()
 void Master::search(int baudRate)
 {
     mMasterThreadWorker.callQueued(&MasterThreadWorker::search, baudRate);
+}
+
+void Master::cancelSearch()
+{
+    mMasterThreadWorker.callQueued(&MasterThreadWorker::cancelSearch);
 }
 
 

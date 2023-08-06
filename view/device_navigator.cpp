@@ -104,6 +104,8 @@ void DeviceNavigator::SearchSlaveModal(Model& model)
     else if(!model.getSlaveSearchInfo().isDone.has_value())
     {
         ImGui::ProgressBar(model.getSlaveSearchInfo().currentPingingID / 255.0);
+        if(ImGui::Button("Cancel"))
+            model.getSlaveSearchInfo().mMaster.lock()->cancelSearch();
     }
     else
     {

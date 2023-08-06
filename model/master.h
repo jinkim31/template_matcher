@@ -3,6 +3,7 @@
 
 #include <ethread.h>
 #include <epromise.h>
+#include <optional>
 #include "master_thread_worker.h"
 
 using namespace ethr;
@@ -16,10 +17,11 @@ public:
     void close();
     std::optional<bool> isOpen();
     void search(int baudRate);
+    void cancelSearch();
 private:
     const std::string mPortName;
     MasterThreadWorker mMasterThreadWorker;
-    EThread masterAcquisitionThread;
+    EThread mMasterAcquisitionThread;
     std::optional<bool> mIsOpen;
     Model* mModel;
 };
