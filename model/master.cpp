@@ -1,10 +1,10 @@
 #include "master.h"
 #include "model.h"
-Master::Master(const std::string &portName, EObjectRef<Model> modelRef)
-: mPortName(portName), mMasterThreadWorker(modelRef)
+Master::Master(const std::string &portName, Model *model)
+: mPortName(portName), mMasterThreadWorker(model->ref<Model>())
 {
     mIsOpen = false;
-    mModelRef = modelRef;
+    mModel = model;
     mMasterThreadWorker.setPortName(portName);
     masterAcquisitionThread.setName("masterAcqThread");
     mMasterThreadWorker.moveToThread(masterAcquisitionThread);
@@ -42,13 +42,6 @@ void Master::search(int baudRate)
 {
     mMasterThreadWorker.callQueued(&MasterThreadWorker::search, baudRate);
 }
-
-int Master::test(LLINK_Error result)
-{
-    std::cout<<"test called"<<std::endl;
-    return 0;
-}
-
 
 
 

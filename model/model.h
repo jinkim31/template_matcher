@@ -21,6 +21,7 @@ public:
         int currentPingingID;
     };
     bool addMaster(const std::string& portName);
+    void removeMaster(const std::string& portName);
     std::weak_ptr<Master> getMaster(const std::string& portName);
     const std::map<std::string, std::shared_ptr<Master>>& getMasters();
     void updatePortNames();

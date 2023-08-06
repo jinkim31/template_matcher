@@ -8,7 +8,7 @@
 namespace DeviceNavigator
 {
     void DeviceNavigator(Model& model);
-    void MasterView(Model& model,  const std::string& portName);
+    bool MasterView(Model& model, const std::string& portName);
     void AddMasterModal(Model &model);
     void SearchSlaveModal(Model& model);
 }

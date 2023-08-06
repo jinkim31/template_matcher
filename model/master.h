@@ -10,7 +10,7 @@ using namespace ethr;
 class Master : public EObject
 {
 public:
-    Master(const std::string &portName, EObjectRef<Model> modelRef);
+    Master(const std::string &portName, Model *model);
     ~Master();
     void open();
     void close();
@@ -21,9 +21,7 @@ private:
     MasterThreadWorker mMasterThreadWorker;
     EThread masterAcquisitionThread;
     std::optional<bool> mIsOpen;
-    EObjectRef<Model> mModelRef;
-
-    int test(LLINK_Error result);
+    Model* mModel;
 };
 
 

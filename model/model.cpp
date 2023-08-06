@@ -20,10 +20,16 @@ bool Model::addMaster(const std::string &portName)
 {
     if(mMasters.find(portName) != mMasters.end())
         return false;
-    auto master = std::make_shared<Master>(portName, ref<Model>());
+    auto master = std::make_shared<Master>(portName, this);
     master->moveToThread(EThread::mainThread());
     mMasters.insert({portName,master});
     return true;
+}
+
+void Model::removeMaster(const std::string &portName)
+{
+    mMasters[portName]->removeFromThread();
+    mMasters.erase(portName);
 }
 
 std::weak_ptr<Master> Model::getMaster(const std::string &portName)

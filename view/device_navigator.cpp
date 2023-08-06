@@ -9,10 +9,16 @@ void DeviceNavigator::DeviceNavigator(Model& model)
         ImGui::OpenPopup("Add Master");
     }
 
+    std::vector<std::string> masterRemoveList;
     for(auto& [portName, master] : model.getMasters())
     {
-        MasterView(model, portName);
+        if(MasterView(model, portName))
+            masterRemoveList.push_back(portName);
     }
+    
+    for(const auto& masterRemovePortName : masterRemoveList)
+        model.removeMaster(masterRemovePortName);
+
 
     // MODALS //////////////////////////////////////////////////////////////////////////////////////////////////////////
     if(ImGui::BeginPopupModal("Add Master", NULL, ImGuiWindowFlags_AlwaysAutoResize)){
@@ -22,7 +28,7 @@ void DeviceNavigator::DeviceNavigator(Model& model)
     ImGui::End();
 }
 
-void DeviceNavigator::MasterView(Model &model, const std::string &portName)
+bool DeviceNavigator::MasterView(Model &model, const std::string &portName)
 {
     auto master = model.getMaster(portName).lock();
     // master title
@@ -47,7 +53,13 @@ void DeviceNavigator::MasterView(Model &model, const std::string &portName)
     {
         model.getSlaveSearchInfo().mMaster = master;
         ImGui::OpenPopup("Search");
-    }
+    } ImGui::SameLine();
+
+    // remove button
+    if(ImGui::Button("Remove"))
+        return true;
+
+    return false;
 }
 
 void DeviceNavigator::AddMasterModal(Model &model)
