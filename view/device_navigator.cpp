@@ -30,6 +30,9 @@ void DeviceNavigator::DeviceNavigator(Model& model)
 bool DeviceNavigator::MasterView(Model &model, const std::string &portName)
 {
     auto master = model.getMaster(portName).lock();
+    bool remove = false;
+    // id stack
+
     // master title
     ImGui::Text("Master at [%s]", portName.c_str());
 
@@ -40,7 +43,7 @@ bool DeviceNavigator::MasterView(Model &model, const std::string &portName)
     else openBtnText = "Open";
 
     // open close button
-    if(ImGui::Button(openBtnText.c_str()))
+    if(ImGui::Button((openBtnText+"##"+portName).c_str()))
     {
         if(!master->isOpen().has_value()){}
         else if(master->isOpen().value()) master->close();
@@ -48,17 +51,20 @@ bool DeviceNavigator::MasterView(Model &model, const std::string &portName)
     } ImGui::SameLine();
 
     // search button
-    if(ImGui::Button("Search"))
+    if(!master->isOpen().has_value() || !master->isOpen().value()) ImGui::BeginDisabled();
+    if(ImGui::Button(("Search##"+portName).c_str()))
     {
+        std::cout<<"btn"<<std::endl;
         model.getSlaveSearchInfo().mMaster = master;
         ImGui::OpenPopup("Search");
     } ImGui::SameLine();
+    if(!master->isOpen().has_value() || !master->isOpen().value())  ImGui::EndDisabled();
 
     // remove button
-    if(ImGui::Button("Remove"))
-        return true;
+    if(ImGui::Button(("Remove##"+portName).c_str()))
+        remove = true;
 
-    return false;
+    return remove;
 }
 
 void DeviceNavigator::AddMasterModal(Model &model)
