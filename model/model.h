@@ -10,6 +10,13 @@
 class Model : public EObject
 {
 public:
+    enum class PopupLevel
+    {
+        INFO,
+        WARNING,
+        ERROR,
+    };
+
     Model();
     ~Model();
     static std::vector<const char*> BAUD_RATE_STRINGS;
@@ -29,10 +36,13 @@ public:
     SlaveSearchInfo& getSlaveSearchInfo();
     void searchSlave();
     void slaveSearchProgressReported(int currentPingingID);
+    void addPopup(PopupLevel popupLevel, const std::string& message);
+    std::queue<std::pair<PopupLevel, std::string>>& popupQueue();
 private:
     std::map<std::string, std::shared_ptr<Master>> mMasters;
     std::vector<std::string> mPortNames;
     SlaveSearchInfo mSlaveSearchInfo;
+    std::queue<std::pair<PopupLevel, std::string>> mPopupQueue;
 };
 
 #endif

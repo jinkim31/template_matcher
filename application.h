@@ -14,6 +14,7 @@ class Application : public EObject
 public:
     Application();
     ~Application();
+    bool PopupModal(const std::pair<Model::PopupLevel, std::string>& popup);
 private:
     void render();
     Model model;

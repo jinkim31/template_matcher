@@ -19,7 +19,6 @@ void DeviceNavigator::DeviceNavigator(Model& model)
     for(const auto& masterRemovePortName : masterRemoveList)
         model.removeMaster(masterRemovePortName);
 
-
     // MODALS //////////////////////////////////////////////////////////////////////////////////////////////////////////
     if(ImGui::BeginPopupModal("Add Master", NULL, ImGuiWindowFlags_AlwaysAutoResize)){
         AddMasterModal(model);ImGui::EndPopup();}

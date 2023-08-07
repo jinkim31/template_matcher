@@ -7,7 +7,6 @@ Model::Model()
     mSlaveSearchInfo.isDone = false;
     mSlaveSearchInfo.mBaudRateIdx = 8; // 115200
     mSlaveSearchInfo.currentPingingID = -1;
-    std::cout<<"init ptr: "<<std::endl;
 }
 
 Model::~Model()
@@ -72,7 +71,14 @@ void Model::searchSlave()
 void Model::slaveSearchProgressReported(int currentPingingID)
 {
     mSlaveSearchInfo.currentPingingID = currentPingingID;
-    if(currentPingingID == 255)
-        mSlaveSearchInfo.isDone=true;
 }
 
+std::queue<std::pair<Model::PopupLevel, std::string>> &Model::popupQueue()
+{
+    return mPopupQueue;
+}
+
+void Model::addPopup(Model::PopupLevel popupLevel, const std::string &message)
+{
+    mPopupQueue.emplace(popupLevel, message);
+}

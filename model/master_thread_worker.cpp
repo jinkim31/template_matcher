@@ -41,8 +41,12 @@ bool MasterThreadWorker::search(int baudRate)
         {
             std::cout<<"found "<<i<<std::endl;
         }
+        std::this_thread::sleep_for(std::chrono::milliseconds(10));
 
         mModelRef.callQueued(&Model::slaveSearchProgressReported, i);
+        threadInAffinity().handleQueuedEvents();
+        if(mSearchCancelFlag)
+            return false;
     }
 
     return true;

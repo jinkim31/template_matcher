@@ -23,7 +23,10 @@ void Master::open()
 {
     mIsOpen = std::nullopt;
     auto promise = new EPromise(mMasterThreadWorker.ref<MasterThreadWorker>(), &MasterThreadWorker::open);
-    promise->then<int>(uref(), [&](LLINK_Error error){!error ? mIsOpen = true : mIsOpen = false; return 0;});
+    promise->then<int>(uref(), [&](LLINK_Error error){
+        if(!error) mIsOpen = true;
+        else{mIsOpen = false; mModel->addPopup(Model::PopupLevel::WARNING, "Port open failed.");}
+        return 0;});
     promise->execute();
 }
 
@@ -31,7 +34,10 @@ void Master::close()
 {
     mIsOpen = std::nullopt;
     auto promise = new EPromise(mMasterThreadWorker.ref<MasterThreadWorker>(), &MasterThreadWorker::close);
-    promise->then<int>(uref(), [&](LLINK_Error error){!error ? mIsOpen = false : mIsOpen = true; return 0;});
+    promise->then<int>(uref(), [&](LLINK_Error error){
+        if(!error) mIsOpen = false;
+        else{mIsOpen = true; mModel->addPopup(Model::PopupLevel::WARNING, "Port close failed.");}
+        return 0;});
     promise->execute();
 }
 
@@ -42,7 +48,9 @@ std::optional<bool> Master::isOpen()
 
 void Master::search(int baudRate)
 {
-    mMasterThreadWorker.callQueued(&MasterThreadWorker::search, baudRate);
+    auto promise = new EPromise(mMasterThreadWorker.ref<MasterThreadWorker>(), &MasterThreadWorker::search);
+    promise->then<int>(uref(), [&](bool ret){mModel->getSlaveSearchInfo().isDone = true; return 0;});
+    promise->execute(baudRate);
 }
 
 void Master::cancelSearch()
