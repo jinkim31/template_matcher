@@ -68,9 +68,14 @@ void Model::searchSlave()
     mSlaveSearchInfo.isDone=std::nullopt;
 }
 
-void Model::slaveSearchProgressReported(int currentPingingID)
+void Model::slaveSearchProgressReported(int nTotalPings, int nPings, bool found, LLINK_Master_Summary summary)
 {
-    mSlaveSearchInfo.currentPingingID = currentPingingID;
+    if(found)
+    {
+        LLINK_Master_printSummary(&summary);
+        LLINK_Master_freeSummary(&summary);
+    }
+    mSlaveSearchInfo.currentPingingID = nPings;
 }
 
 std::queue<std::pair<Model::PopupLevel, std::string>> &Model::popupQueue()

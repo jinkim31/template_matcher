@@ -5,6 +5,7 @@
 #include <vector>
 #include <memory>
 #include <ethread.h>
+#include <lightlink_master.h>
 #include "master.h"
 
 class Model : public EObject
@@ -35,7 +36,7 @@ public:
     const std::vector<std::string>& getPortNames();
     SlaveSearchInfo& getSlaveSearchInfo();
     void searchSlave();
-    void slaveSearchProgressReported(int currentPingingID);
+    void slaveSearchProgressReported(int nTotalPings, int nPings, bool found, LLINK_Master_Summary summary);
     void addPopup(PopupLevel popupLevel, const std::string& message);
     std::queue<std::pair<PopupLevel, std::string>>& popupQueue();
 private:

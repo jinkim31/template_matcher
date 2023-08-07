@@ -18,6 +18,7 @@ public:
     std::optional<bool> isOpen();
     void search(int baudRate);
     void cancelSearch();
+
 private:
     const std::string mPortName;
     MasterThreadWorker mMasterThreadWorker;

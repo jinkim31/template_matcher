@@ -33,18 +33,21 @@ bool MasterThreadWorker::search(int baudRate)
 {
     mSearchCancelFlag = false;
     LLINK_Master_setBaudRate(mLLinkMaster, baudRate);
+    LLINK_Master_Summary summary;
+    bool found;
+
     for(int i=0; i<256; i++)
     {
-        std::cout<<"pinging "<<i<<std::endl;
+        found = false;
         auto t = std::chrono::high_resolution_clock::now();
         if(LLINK_Master_pingDevice(mLLinkMaster, i, 10) == LLINK_ERROR_NO_ERROR)
         {
             std::cout<<"found "<<i<<std::endl;
+            found = true;
+            LLINK_Master_summarizeDevice(mLLinkMaster, i, &summary, 10);
         }
 
-        std::cout<<"time: "<<std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - t).count()<<std::endl;
-
-        mModelRef.callQueued(&Model::slaveSearchProgressReported, i);
+        mModelRef.callQueued(&Model::slaveSearchProgressReported, 256, i+1, found, summary);
         threadInAffinity().handleQueuedEvents(); // check for search cancel
         if(mSearchCancelFlag)
             return false;
