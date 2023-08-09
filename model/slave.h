@@ -35,6 +35,7 @@ public:
     int id();
     int baudRate();
     std::map<int, TypedObjectList>& objectTable();
+    void addTypedReadTarget(const int &typeId, const std::vector<int> &objectIds, const int &periodMs);
     void setMaster(std::weak_ptr<Master> master);
 private:
     int mId;

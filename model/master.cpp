@@ -8,15 +8,15 @@ Master::Master(const std::string &portName, Model *model)
     mMasterThreadWorker.setPortName(portName);
     mMasterAcquisitionThread.setName("masterAcqThread");
     mMasterThreadWorker.moveToThread(mMasterAcquisitionThread);
-    mTimer.moveToThread(EThread::mainThread());
-    mTimer.start();
+    //mTimer.moveToThread(EThread::mainThread());
+    //mTimer.start();
     mMasterAcquisitionThread.start();
-    mTimer.addTask(0, std::chrono::milliseconds(0), [&]{
+    /*mTimer.addTask(0, std::chrono::milliseconds(0), [&]{
         static auto t = std::chrono::high_resolution_clock::now();
         //watch();
         std::cout<<"timer: "<<std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - t).count()<<std::endl;
         t = std::chrono::high_resolution_clock::now();
-    });
+    });*/
 }
 
 Master::~Master()
@@ -24,8 +24,8 @@ Master::~Master()
     mMasterThreadWorker.callQueued(&MasterThreadWorker::close);
     mMasterAcquisitionThread.waitForEventHandleCompletion();
     mMasterThreadWorker.removeFromThread();
-    mTimer.stop();
-    mTimer.removeFromThread();
+    //mTimer.stop();
+    //mTimer.removeFromThread();
     mMasterAcquisitionThread.stop();
 }
 
@@ -93,6 +93,11 @@ void Master::addSlave(std::shared_ptr<Slave> slave)
 std::map<int, std::shared_ptr<Slave>> Master::getSlaves()
 {
     return mSlaves;
+}
+
+void Master::addReadTargets(Slave *slave, const int &typeId, const std::vector<int> &objectIds, const int &periodMs)
+{
+
 }
 
 

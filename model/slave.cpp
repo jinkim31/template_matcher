@@ -1,8 +1,5 @@
-//
-// Created by User on 2023-08-09.
-//
-
 #include "slave.h"
+#include "master.h"
 
 Slave::Slave(LLINK_Master_Summary *summary, int id, int baudRate)
 {
@@ -55,4 +52,9 @@ std::map<int, Slave::TypedObjectList> &Slave::objectTable()
 void Slave::setMaster(std::weak_ptr<Master> master)
 {
     mMaster = master;
+}
+
+void Slave::addTypedReadTarget(const int &typeId, const std::vector<int> &objectIds, const int &periodMs)
+{
+    mMaster.lock()->addReadTargets(this, typeId, objectIds, periodMs);
 }

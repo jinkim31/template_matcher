@@ -17,7 +17,7 @@ void DeviceView::DeviceView(Slave &slave)
     for(auto& [typeName, typedList] : slave.objectTable())
     {
         ImGui::Text("%s (%d)", typedList.typeName.c_str(),  typedList.typeId); ImGui::SameLine();
-        ImGui::InputInt("Watch period(ms)", &(typedList.watchPeriodMs), 10); ImGui::SameLine();
+        ImGui::InputInt("Watch period(ms)", &(typedList.watchPeriodMs), 10);
         if(typedList.watchPeriodMs < 0) typedList.watchPeriodMs = 0;
 
         if (ImGui::BeginTable("device_view_table", 6, flags))
@@ -42,7 +42,7 @@ void DeviceView::DeviceView(Slave &slave)
                 ImGui::TableSetColumnIndex(3);
                 ImGui::Text("%s", typedList.typeName.c_str());
                 ImGui::TableSetColumnIndex(4);
-                ImGui::Text("%d", typedList.typeSize);
+                ImGui::Text("%zu", typedList.typeSize);
                 ImGui::TableSetColumnIndex(5);
                 ImGui::Text("%s", LLINK_ACCESS_STRING[object.access]);
             }

@@ -21,6 +21,7 @@ public:
     void cancelSearch();
     void addSlave(std::shared_ptr<Slave> slave);
     std::map<int, std::shared_ptr<Slave>> getSlaves();
+    void addReadTargets(Slave *slave, const int &typeId, const std::vector<int> &objectIds, const int &periodMs);
 private:
     const std::string mPortName;
     MasterThreadWorker mMasterThreadWorker;

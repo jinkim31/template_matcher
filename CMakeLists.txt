@@ -31,7 +31,6 @@ imgui_bundle_add_app(lightlink_view
         model/master_thread_worker.cpp
         view/device_navigator.cpp
         view/device_view.cpp
-        view/widget.cpp
         )
 
 target_link_libraries(lightlink_view PRIVATE
