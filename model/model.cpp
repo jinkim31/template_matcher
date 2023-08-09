@@ -1,5 +1,7 @@
 #include "model.h"
 
+#include <utility>
+
 std::vector<const char*> Model::BAUD_RATE_STRINGS = {"1200","2400","4800","9600","14400","19200","38400","57600","115200","128000","256000"};
 
 Model::Model()
@@ -7,6 +9,7 @@ Model::Model()
     mSlaveSearchInfo.isDone = false;
     mSlaveSearchInfo.mBaudRateIdx = 8; // 115200
     mSlaveSearchInfo.currentPingingID = -1;
+    mDeviceViewTarget = std::nullopt;
 }
 
 Model::~Model()
@@ -68,15 +71,17 @@ void Model::searchSlave()
     mSlaveSearchInfo.isDone=std::nullopt;
 }
 
-void Model::slaveSearchProgressReported(int nTotalPings, int nPings, bool found, LLINK_Master_Summary summary)
+void Model::slaveSearchProgressReported(int nTotalPings, int nPings)
 {
-    if(found)
-    {
-        LLINK_Master_printSummary(&summary);
-        LLINK_Master_freeSummary(&summary);
-    }
     mSlaveSearchInfo.currentPingingID = nPings;
 }
+
+void Model::slaveFoundReported(std::shared_ptr<Slave> slave)
+{
+    slave->setMaster(mSlaveSearchInfo.mMaster);
+    mSlaveSearchInfo.mMaster.lock()->addSlave(std::move(slave));
+}
+
 
 std::queue<std::pair<Model::PopupLevel, std::string>> &Model::popupQueue()
 {
@@ -86,4 +91,14 @@ std::queue<std::pair<Model::PopupLevel, std::string>> &Model::popupQueue()
 void Model::addPopup(Model::PopupLevel popupLevel, const std::string &message)
 {
     mPopupQueue.emplace(popupLevel, message);
+}
+
+void Model::setDeviceViewTarget(const std::optional<std::pair<std::string, int>> &target)
+{
+    mDeviceViewTarget = target;
+}
+
+std::optional<std::pair<std::string, int>> &Model::deviceViewTarget()
+{
+    return mDeviceViewTarget;
 }

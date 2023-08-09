@@ -1,5 +1,6 @@
 #include "application.h"
 #include "view/device_navigator.h"
+#include "view/device_view.h"
 
 Application::Application()
 {
@@ -33,6 +34,14 @@ void Application::render()
 {
     ImGui::ShowDemoWindow();
     DeviceNavigator::DeviceNavigator(model);
+
+    if(model.deviceViewTarget().has_value())
+    {
+        ImGui::Begin("Device View");
+        auto slave = model.getMaster(model.deviceViewTarget()->first).lock()->getSlaves()[model.deviceViewTarget()->second];
+        DeviceView::DeviceView(*slave);
+        ImGui::End();
+    }
 
     if(!model.popupQueue().empty())
         ImGui::OpenPopup("Warning");

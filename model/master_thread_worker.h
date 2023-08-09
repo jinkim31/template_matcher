@@ -4,6 +4,7 @@
 #include <ethread.h>
 #include <etimer.h>
 #include <lightlink_master.h>
+#include "slave.h"
 
 using namespace ethr;
 
@@ -22,7 +23,6 @@ public:
     void cancelSearch();
 private:
     LLINK_Master* mLLinkMaster;
-    bool mIsOpen;
     ETimer mTimer;
     std::string mPortName;
     EObjectRef<Model> mModelRef;

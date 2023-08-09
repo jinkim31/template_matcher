@@ -8,7 +8,15 @@ Master::Master(const std::string &portName, Model *model)
     mMasterThreadWorker.setPortName(portName);
     mMasterAcquisitionThread.setName("masterAcqThread");
     mMasterThreadWorker.moveToThread(mMasterAcquisitionThread);
+    mTimer.moveToThread(EThread::mainThread());
+    mTimer.start();
     mMasterAcquisitionThread.start();
+    mTimer.addTask(0, std::chrono::milliseconds(0), [&]{
+        static auto t = std::chrono::high_resolution_clock::now();
+        //watch();
+        std::cout<<"timer: "<<std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - t).count()<<std::endl;
+        t = std::chrono::high_resolution_clock::now();
+    });
 }
 
 Master::~Master()
@@ -16,6 +24,8 @@ Master::~Master()
     mMasterThreadWorker.callQueued(&MasterThreadWorker::close);
     mMasterAcquisitionThread.waitForEventHandleCompletion();
     mMasterThreadWorker.removeFromThread();
+    mTimer.stop();
+    mTimer.removeFromThread();
     mMasterAcquisitionThread.stop();
 }
 
@@ -56,6 +66,33 @@ void Master::search(int baudRate)
 void Master::cancelSearch()
 {
     mMasterThreadWorker.callQueued(&MasterThreadWorker::cancelSearch);
+}
+
+void Master::watch()
+{
+    for(auto& slave : mSlaves)
+    {
+        for(auto& [typeId, typedList] : slave.second->objectTable())
+        {
+            typedList.watchPeriodCountMs += 10;
+            if(typedList.watchPeriodMs <= typedList.watchPeriodCountMs)
+            {
+                static int c = 0;
+                std::cout<<"detected "<<c++<<std::endl;
+                typedList.watchPeriodCountMs = 0;
+            }
+        }
+    }
+}
+
+void Master::addSlave(std::shared_ptr<Slave> slave)
+{
+    mSlaves[slave->id()] = slave;
+}
+
+std::map<int, std::shared_ptr<Slave>> Master::getSlaves()
+{
+    return mSlaves;
 }
 
 

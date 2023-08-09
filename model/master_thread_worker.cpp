@@ -3,7 +3,6 @@
 
 MasterThreadWorker::MasterThreadWorker(EObjectRef<Model> modelRef)
 {
-    mIsOpen = false;
     mModelRef = modelRef;
     mLLinkMaster = LLINK_Master_create();
 }
@@ -36,18 +35,20 @@ bool MasterThreadWorker::search(int baudRate)
     LLINK_Master_Summary summary;
     bool found;
 
-    for(int i=0; i<256; i++)
+    for(int id=0; id < 256; id++)
     {
         found = false;
         auto t = std::chrono::high_resolution_clock::now();
-        if(LLINK_Master_pingDevice(mLLinkMaster, i, 10) == LLINK_ERROR_NO_ERROR)
+        if(LLINK_Master_pingDevice(mLLinkMaster, id, 10) == LLINK_ERROR_NO_ERROR)
         {
-            std::cout<<"found "<<i<<std::endl;
-            found = true;
-            LLINK_Master_summarizeDevice(mLLinkMaster, i, &summary, 10);
+            LLINK_Master_summarizeDevice(mLLinkMaster, id, &summary, 10);
+
+            mModelRef.callQueued(&Model::slaveFoundReported, std::make_shared<Slave>(&summary, id, baudRate));
+
+            LLINK_Master_freeSummary(&summary);
         }
 
-        mModelRef.callQueued(&Model::slaveSearchProgressReported, 256, i+1, found, summary);
+        mModelRef.callQueued(&Model::slaveSearchProgressReported, 256, id + 1);
         threadInAffinity().handleQueuedEvents(); // check for search cancel
         if(mSearchCancelFlag)
             return false;

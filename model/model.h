@@ -36,14 +36,18 @@ public:
     const std::vector<std::string>& getPortNames();
     SlaveSearchInfo& getSlaveSearchInfo();
     void searchSlave();
-    void slaveSearchProgressReported(int nTotalPings, int nPings, bool found, LLINK_Master_Summary summary);
+    void slaveSearchProgressReported(int nTotalPings, int nPings);
+    void slaveFoundReported(std::shared_ptr<Slave> slave);
     void addPopup(PopupLevel popupLevel, const std::string& message);
     std::queue<std::pair<PopupLevel, std::string>>& popupQueue();
+    void setDeviceViewTarget(const std::optional<std::pair<std::string, int>> &target);
+    std::optional<std::pair<std::string, int>>& deviceViewTarget();
 private:
     std::map<std::string, std::shared_ptr<Master>> mMasters;
     std::vector<std::string> mPortNames;
     SlaveSearchInfo mSlaveSearchInfo;
     std::queue<std::pair<PopupLevel, std::string>> mPopupQueue;
+    std::optional<std::pair<std::string, int>> mDeviceViewTarget;
 };
 
 #endif
