@@ -96,6 +96,7 @@ void MasterThreadWorker::watch()
         if(target.periodMs > target.periodCountMs)
             continue;
 
+        std::cout<<"watching id: "<<(int)target.id<<", tid: "<<(int)target.typeId<<"("<<target.periodMs<<")"<<std::endl;
         target.periodCountMs=0;
 
         uint8_t* read = new uint8_t[target.typeSize * target.objectIds.size()];
