@@ -1,7 +1,7 @@
 #include "master.h"
 #include "model.h"
 Master::Master(const std::string &portName, Model *model)
-: mPortName(portName), mMasterThreadWorker(model->ref<Model>())
+: mPortName(portName), mMasterThreadWorker(model->ref<Model>(), ref<Master>())
 {
     mIsOpen = false;
     mModel = model;
@@ -68,23 +68,6 @@ void Master::cancelSearch()
     mMasterThreadWorker.callQueued(&MasterThreadWorker::cancelSearch);
 }
 
-void Master::watch()
-{
-    for(auto& slave : mSlaves)
-    {
-        for(auto& [typeId, typedList] : slave.second->objectTable())
-        {
-            typedList.watchPeriodCountMs += 10;
-            if(typedList.watchPeriodMs <= typedList.watchPeriodCountMs)
-            {
-                static int c = 0;
-                std::cout<<"detected "<<c++<<std::endl;
-                typedList.watchPeriodCountMs = 0;
-            }
-        }
-    }
-}
-
 void Master::addSlave(std::shared_ptr<Slave> slave)
 {
     mSlaves[slave->id()] = slave;
@@ -95,10 +78,42 @@ std::map<int, std::shared_ptr<Slave>> Master::getSlaves()
     return mSlaves;
 }
 
-void Master::addReadTargets(Slave *slave, const int &typeId, const std::vector<int> &objectIds, const int &periodMs)
+void Master::addReadTargets(Slave *slave, const int &typeId, const int &typeSize, const std::vector<uint8_t> &objectIds,
+                            const int &periodMs)
 {
-
+    MasterThreadWorker::ReadTarget readTarget;
+    readTarget.id = slave->id();
+    readTarget.typeId = typeId;
+    readTarget.typeSize = typeSize;
+    readTarget.objectIds = objectIds;
+    readTarget.periodMs = periodMs;
+    mMasterThreadWorker.callQueued(&MasterThreadWorker::addReadTarget, readTarget);
 }
 
+void
+Master::targetReadReported(uint8_t id, uint8_t typeId, uint8_t typeSize, std::vector<uint8_t> objectIds, uint8_t **data)
+{
+    if(mSlaves.find(id) == mSlaves.end())
+    {
+        std::cerr<<"Master::targetReadReported() invalid slave id"<<std::endl;
+        return;
+    }
 
+    int iObject = 0;
+    for(const auto& objectId : objectIds)
+    {
+        if(mSlaves[id]->objectTable().find(typeId) == mSlaves[id]->objectTable().end())
+        {
+            std::cerr<<"Master::targetReadReported() invalid type id"<<std::endl;
+            return;
+        }
+        std::cout<<"assigning "<<(int)id<<">"<<(int)typeId<<">"<<(int)objectId<<std::endl;
+        std::cout<<"dst"<<(int)*(mSlaves[id]->objectTable()[typeId].objects[objectId].data.get())<<std::endl;
+        std::cout<<"src"<<(int)*(data[iObject])<<std::endl;
+        memcpy(mSlaves[id]->objectTable()[typeId].objects[objectId].data.get(), data[iObject], typeSize);
+        mSlaves[id]->objectTable()[typeId].objects[objectId].dataValid = true;
 
+        iObject++;
+    }
+    // TODO: delete data array
+}

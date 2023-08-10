@@ -14,10 +14,14 @@ void DeviceView::DeviceView(Slave &slave)
 
     const char LLINK_ACCESS_STRING[4][13] = {"inaccessible", "read", "write", "readwrite"};
 
-    for(auto& [typeName, typedList] : slave.objectTable())
+    for(auto& [typeId, typedList] : slave.objectTable())
     {
         ImGui::Text("%s (%d)", typedList.typeName.c_str(),  typedList.typeId); ImGui::SameLine();
-        ImGui::InputInt("Watch period(ms)", &(typedList.watchPeriodMs), 10);
+        if(ImGui::InputInt("Watch period(ms)", &(typedList.watchPeriodMs), 10))
+        {
+            slave.addTypedReadTarget(typeId);
+            std::cout<<"period changed to "<<typedList.watchPeriodMs<<std::endl;
+        }
         if(typedList.watchPeriodMs < 0) typedList.watchPeriodMs = 0;
 
         if (ImGui::BeginTable("device_view_table", 6, flags))

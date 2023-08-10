@@ -1,4 +1,6 @@
 #include "slave.h"
+
+#include <utility>
 #include "master.h"
 
 Slave::Slave(LLINK_Master_Summary *summary, int id, int baudRate)
@@ -14,15 +16,17 @@ Slave::Slave(LLINK_Master_Summary *summary, int id, int baudRate)
         typedListModel.typeName = typedList->typeName;
         typedListModel.typeSize = typedList->typeSize;
         typedListModel.watchPeriodMs = 500;
-        typedListModel.watchPeriodCountMs = 0;
-        for(int objectIndex = 0; objectIndex < typedList->nObjects; objectIndex++)
+        for(int objectId = 0; objectId < typedList->nObjects; objectId++)
         {
-            LLINK_Master_Object* object = typedList->objects+objectIndex;
+            LLINK_Master_Object* object = typedList->objects + objectId;
             Object objectModel;
-            objectModel.id = objectIndex;
+            objectModel.id = objectId;
             objectModel.name = object->name;
             objectModel.access = object->access;
-            objectModel.value = std::make_unique<uint8_t[]>(typedList->typeSize);
+            objectModel.dataValid = false;
+            if(object->access & LLINK_ACCESS_READ)
+                typedListModel.readableObjectIds.push_back(objectId);
+            objectModel.data = std::make_unique<uint8_t[]>(typedList->typeSize);
             typedListModel.objects.push_back(std::move(objectModel));
         }
         mObjectTable.insert({typeIndex, std::move(typedListModel)});
@@ -51,10 +55,14 @@ std::map<int, Slave::TypedObjectList> &Slave::objectTable()
 
 void Slave::setMaster(std::weak_ptr<Master> master)
 {
-    mMaster = master;
+    mMaster = std::move(master);
 }
 
-void Slave::addTypedReadTarget(const int &typeId, const std::vector<int> &objectIds, const int &periodMs)
+void Slave::addTypedReadTarget(const int &typeId)
 {
-    mMaster.lock()->addReadTargets(this, typeId, objectIds, periodMs);
+    mMaster.lock()->addReadTargets(
+            this, typeId,
+            mObjectTable[typeId].typeSize,
+            mObjectTable[typeId].readableObjectIds,
+            mObjectTable[typeId].watchPeriodMs);
 }

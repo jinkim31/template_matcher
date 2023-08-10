@@ -10,19 +10,22 @@ using namespace ethr;
 
 // forward decl
 class Model;
+class Master;
 
 class MasterThreadWorker : public EObject
 {
 public:
     struct ReadTarget
     {
-        int id;
-        int typeId;
-        std::vector<int> objectIds;
+        uint8_t id;
+        uint8_t typeId;
+        std::vector<uint8_t> objectIds;
+        uint8_t typeSize;
         int baudRate;
         int periodMs;
+        int periodCountMs;
     };
-    MasterThreadWorker(EObjectRef<Model> modelRef);
+    MasterThreadWorker(EObjectRef<Model> modelRef, EObjectRef<Master> masterRef);
     ~MasterThreadWorker();
     void setPortName(const std::string portName);
     LLINK_Error open();
@@ -30,19 +33,19 @@ public:
     bool search(int baudRate);
     void cancelSearch();
     void addReadTarget(ReadTarget target);
-private:
 protected:
     void onMovedToThread(EThread &ethread) override;
-
     void onRemovedFromThread() override;
-
 private:
     LLINK_Master* mLLinkMaster;
     std::string mPortName;
     ETimer mTimer;
     EObjectRef<Model> mModelRef;
-    std::map<std::pair<int, int>, ReadTarget> mReadTargets;
+    EObjectRef<Master> mMasterRef;
+    std::map<std::pair<uint8_t, uint8_t>, ReadTarget> mReadTargets;
     bool mSearchCancelFlag;
+    void watch();
+
 };
 
 #endif

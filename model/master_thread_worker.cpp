@@ -1,17 +1,18 @@
 #include "master_thread_worker.h"
 #include "model.h"
 
-MasterThreadWorker::MasterThreadWorker(EObjectRef<Model> modelRef)
+MasterThreadWorker::MasterThreadWorker(EObjectRef<Model> modelRef, EObjectRef<Master> masterRef)
 {
     mModelRef = modelRef;
+    mMasterRef = masterRef;
     mLLinkMaster = LLINK_Master_create();
 }
 
 void MasterThreadWorker::onMovedToThread(EThread &ethread)
 {
     mTimer.moveToThread(ethread);
-    mTimer.addTask(0, std::chrono::milliseconds(1000), []{
-        std::cout<<"hi"<<std::endl;
+    mTimer.addTask(0, std::chrono::milliseconds(10), [&]{
+        watch();
     });
     mTimer.start();
 }
@@ -83,6 +84,41 @@ void MasterThreadWorker::cancelSearch()
 
 void MasterThreadWorker::addReadTarget(ReadTarget target)
 {
+    target.periodCountMs = 0;
     mReadTargets[{target.id, target.typeId}] = target;
 }
 
+void MasterThreadWorker::watch()
+{
+    for(auto& [idPair, target] : mReadTargets)
+    {
+        target.periodCountMs+=10;
+        if(target.periodMs > target.periodCountMs)
+            continue;
+
+        std::cout<<target.periodMs<<"ms"<<std::endl;
+        target.periodCountMs=0;
+
+
+        std::cout<<"read array:"<<target.objectIds.size()<<"*"<<(int)target.typeSize<<std::endl;
+        uint8_t** read = new uint8_t*[target.objectIds.size()];
+        for(int i=0; i<target.objectIds.size(); i++)
+            read[i] = new uint8_t[target.typeSize];
+
+        std::cout<<"read ret: "<<LLINK_Master_readDevice(
+                mLLinkMaster,
+                idPair.first, idPair.second,
+                target.typeSize,
+                target.objectIds.size(),
+                &(target.objectIds[0]),
+                read,
+                10)<<std::endl;
+
+        for(int i=0; i<4; i++)
+        {
+            std::cout<<i<<": "<<(int)read[i][0]<<std::endl;
+        }
+
+        mMasterRef.callQueued(&Master::targetReadReported, idPair.first, idPair.second, target.typeSize, target.objectIds, read);
+    }
+}

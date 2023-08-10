@@ -21,7 +21,10 @@ public:
     void cancelSearch();
     void addSlave(std::shared_ptr<Slave> slave);
     std::map<int, std::shared_ptr<Slave>> getSlaves();
-    void addReadTargets(Slave *slave, const int &typeId, const std::vector<int> &objectIds, const int &periodMs);
+    void addReadTargets(Slave *slave, const int &typeId, const int &typeSize, const std::vector<uint8_t> &objectIds,
+                        const int &periodMs);
+
+    void targetReadReported(uint8_t id, uint8_t typeId, uint8_t typeSize, std::vector<uint8_t> objectIds, uint8_t** data);
 private:
     const std::string mPortName;
     MasterThreadWorker mMasterThreadWorker;
@@ -29,9 +32,6 @@ private:
     std::optional<bool> mIsOpen;
     Model* mModel;
     std::map<int, std::shared_ptr<Slave>> mSlaves;
-    ETimer mTimer;
-
-    void watch();
 };
 
 
