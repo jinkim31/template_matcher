@@ -25,6 +25,16 @@ public:
         int periodMs;
         int periodCountMs;
     };
+
+    struct WriteTarget
+    {
+        uint8_t id;
+        uint8_t typeId;
+        std::vector<uint8_t> objectIds;
+        std::vector<uint8_t> values;
+        uint8_t typeSize;
+        int baudRate;
+    };
     MasterThreadWorker(EObjectRef<Model> modelRef, EObjectRef<Master> masterRef);
     ~MasterThreadWorker();
     void setPortName(const std::string portName);
@@ -33,6 +43,7 @@ public:
     bool search(int baudRate);
     void cancelSearch();
     void addReadTarget(ReadTarget target);
+    void writeObject(std::shared_ptr<MasterThreadWorker::WriteTarget> target);
 protected:
     void onMovedToThread(EThread &ethread) override;
     void onRemovedFromThread() override;

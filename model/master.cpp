@@ -1,5 +1,7 @@
 #include "master.h"
 #include "model.h"
+#include "../util.h"
+
 Master::Master(const std::string &portName, Model *model)
 : mPortName(portName), mMasterThreadWorker(model->ref<Model>(), ref<Master>())
 {
@@ -91,7 +93,7 @@ void Master::addReadTargets(Slave *slave, const int &typeId, const int &typeSize
 }
 
 void
-Master::targetReadReported(uint8_t id, uint8_t typeId, uint8_t typeSize, std::vector<uint8_t> objectIds, uint8_t **data)
+Master::targetReadReported(uint8_t id, uint8_t typeId, uint8_t typeSize, std::vector<uint8_t> objectIds, uint8_t *data)
 {
     if(mSlaves.find(id) == mSlaves.end())
     {
@@ -107,13 +109,24 @@ Master::targetReadReported(uint8_t id, uint8_t typeId, uint8_t typeSize, std::ve
             std::cerr<<"Master::targetReadReported() invalid type id"<<std::endl;
             return;
         }
-        std::cout<<"assigning "<<(int)id<<">"<<(int)typeId<<">"<<(int)objectId<<std::endl;
-        std::cout<<"dst"<<(int)*(mSlaves[id]->objectTable()[typeId].objects[objectId].data.get())<<std::endl;
-        std::cout<<"src"<<(int)*(data[iObject])<<std::endl;
-        memcpy(mSlaves[id]->objectTable()[typeId].objects[objectId].data.get(), data[iObject], typeSize);
-        mSlaves[id]->objectTable()[typeId].objects[objectId].dataValid = true;
+        Slave::Object& object = mSlaves[id]->objectTable()[typeId].objects[objectId];
+        memcpy(object.data.get(), data + typeSize * iObject, typeSize);
+        object.rawText = util::hexStr(object.data.get(), typeSize);
+        object.dataValid = true;
 
         iObject++;
     }
-    // TODO: delete data array
+    delete [] data;
+}
+
+void Master::writeObject(Slave *slave, const uint8_t &typeId, const std::vector<uint8_t> &objectIds, const std::vector<uint8_t> &values)
+{
+    auto writeTarget = std::make_shared<MasterThreadWorker::WriteTarget>();
+    writeTarget->id = slave->id();
+    writeTarget->typeId = typeId;
+    writeTarget->objectIds = objectIds;
+    writeTarget->values = values;
+    writeTarget->typeSize = slave->objectTable()[typeId].typeSize;
+    writeTarget->baudRate = slave->baudRate();
+    mMasterThreadWorker.callQueued(&MasterThreadWorker::writeObject, writeTarget);
 }

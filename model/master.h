@@ -23,8 +23,8 @@ public:
     std::map<int, std::shared_ptr<Slave>> getSlaves();
     void addReadTargets(Slave *slave, const int &typeId, const int &typeSize, const std::vector<uint8_t> &objectIds,
                         const int &periodMs);
-
-    void targetReadReported(uint8_t id, uint8_t typeId, uint8_t typeSize, std::vector<uint8_t> objectIds, uint8_t** data);
+    void writeObject(Slave* slave, const uint8_t& typeId, const std::vector<uint8_t> &objectIds, const std::vector<uint8_t>& values);
+    void targetReadReported(uint8_t id, uint8_t typeId, uint8_t typeSize, std::vector<uint8_t> objectIds, uint8_t *data);
 private:
     const std::string mPortName;
     MasterThreadWorker mMasterThreadWorker;

@@ -3,6 +3,7 @@
 void DeviceNavigator::DeviceNavigator(Model& model)
 {
     ImGui::Begin("Device Navigator");
+
     if(ImGui::Button("Add Master"))
     {
         model.updatePortNames();

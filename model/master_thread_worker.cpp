@@ -96,29 +96,37 @@ void MasterThreadWorker::watch()
         if(target.periodMs > target.periodCountMs)
             continue;
 
-        std::cout<<target.periodMs<<"ms"<<std::endl;
         target.periodCountMs=0;
 
+        uint8_t* read = new uint8_t[target.typeSize * target.objectIds.size()];
 
-        std::cout<<"read array:"<<target.objectIds.size()<<"*"<<(int)target.typeSize<<std::endl;
-        uint8_t** read = new uint8_t*[target.objectIds.size()];
-        for(int i=0; i<target.objectIds.size(); i++)
-            read[i] = new uint8_t[target.typeSize];
-
-        std::cout<<"read ret: "<<LLINK_Master_readDevice(
+        auto error = LLINK_Master_readDevice(
                 mLLinkMaster,
                 idPair.first, idPair.second,
                 target.typeSize,
                 target.objectIds.size(),
                 &(target.objectIds[0]),
                 read,
-                10)<<std::endl;
+                100);
 
-        for(int i=0; i<4; i++)
+        if(error)
         {
-            std::cout<<i<<": "<<(int)read[i][0]<<std::endl;
+            std::cout << "read error: " << error << std::endl;
+            return;
         }
 
         mMasterRef.callQueued(&Master::targetReadReported, idPair.first, idPair.second, target.typeSize, target.objectIds, read);
+    }
+}
+
+void MasterThreadWorker::writeObject(std::shared_ptr<MasterThreadWorker::WriteTarget> target)
+{
+    auto error = LLINK_Master_writeDevice(mLLinkMaster, target->id, target->typeId,
+                             target->typeSize, target->objectIds.size(),
+                             &(target->objectIds[0]), &(target->values[0]), 10);
+    if(error)
+    {
+        std::cout << "write error: " << error << std::endl;
+        return;
     }
 }

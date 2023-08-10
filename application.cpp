@@ -22,6 +22,10 @@ Application::Application()
     addOnsParams.withMarkdown = true;
     addOnsParams.withImplot = true;
     addOnsParams.withTexInspect = true;
+
+    // dock
+    runnerParams.imGuiWindowParams.enableViewports = false;
+
     ImmApp::Run(runnerParams, addOnsParams);
 }
 

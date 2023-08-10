@@ -66,3 +66,12 @@ void Slave::addTypedReadTarget(const int &typeId)
             mObjectTable[typeId].readableObjectIds,
             mObjectTable[typeId].watchPeriodMs);
 }
+
+void Slave::writeObject(const uint8_t &typeId, const std::vector<uint8_t> &objectIds, const std::vector<std::vector<uint8_t>> &values)
+{
+    std::vector<uint8_t> valuesCombined;
+    for(const auto& value : values)
+        for(const auto& byte : value)
+            valuesCombined.push_back(byte);
+    mMaster.lock()->writeObject(this, typeId, objectIds, valuesCombined);
+}

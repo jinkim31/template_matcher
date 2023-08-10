@@ -14,11 +14,13 @@ class Slave
 public:
     struct Object
     {
-        int id;
+        uint8_t id;
         std::string name;
         LLINK_Access access;
         bool dataValid;
         std::unique_ptr<uint8_t[]> data;
+        std::string rawText;
+        std::string dataText;
     };
     struct TypedObjectList
     {
@@ -37,6 +39,7 @@ public:
     int baudRate();
     std::map<int, TypedObjectList>& objectTable();
     void addTypedReadTarget(const int &typeId);
+    void writeObject(const uint8_t& typeId, const std::vector<uint8_t> &objectIds, const std::vector<std::vector<uint8_t>> &values);
     void setMaster(std::weak_ptr<Master> master);
 private:
     int mId;
