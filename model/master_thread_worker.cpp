@@ -137,14 +137,6 @@ void MasterThreadWorker::writeObject(std::shared_ptr<MasterThreadWorker::WriteTa
 void MasterThreadWorker::rxCallback(uint8_t *bytes, size_t &len)
 {
     std::cout<<"rx"<<std::endl;
-    std::vector<uint8_t> vec;
-    // https://stackoverflow.com/questions/7863603/how-to-make-template-rvalue-reference-parameter-only-bind-to-rvalue-reference
-    //mMasterRef.callQueuedMove(&Master::rxReported, std::move(vec));
-    static int testCount = 0;
-    std::cout<<"test start("<<testCount<<")"<<std::endl;
-    util::PassTester tester(testCount++);
-    std::cout<<"A"<<std::endl;
-    mMasterRef.callQueuedMove(&Master::test, std::move(tester));
 }
 
 void MasterThreadWorker::txCallback(uint8_t *bytes, size_t &len)

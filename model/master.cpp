@@ -136,7 +136,7 @@ void Master::rxReported(const std::vector<uint8_t> &bytes)
     std::cout<<"rx reported"<<std::endl;
 }
 
-void Master::test(const util::PassTester &passTester)
+void Master::test(util::PassTester &&passTester)
 {
     std::cout<<"pass test complete("<<passTester.num()<<")"<<std::endl;
 }
