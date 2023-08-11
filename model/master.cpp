@@ -130,3 +130,13 @@ void Master::writeObject(Slave *slave, const uint8_t &typeId, const std::vector<
     writeTarget->baudRate = slave->baudRate();
     mMasterThreadWorker.callQueued(&MasterThreadWorker::writeObject, writeTarget);
 }
+
+void Master::rxReported(const std::vector<uint8_t> &bytes)
+{
+    std::cout<<"rx reported"<<std::endl;
+}
+
+void Master::test(const util::PassTester &passTester)
+{
+    std::cout<<"pass test complete("<<passTester.num()<<")"<<std::endl;
+}

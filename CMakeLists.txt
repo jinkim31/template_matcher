@@ -25,8 +25,10 @@ imgui_bundle_add_app(lightlink_view
         model/model.cpp
         model/slave.cpp
         model/master_thread_worker.cpp
+        model/master_log.cpp
         view/device_navigator.cpp
         view/device_view.cpp
+        view/master_log_view.cpp
         util.cpp
         )
 

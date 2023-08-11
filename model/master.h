@@ -6,6 +6,7 @@
 #include <optional>
 #include "master_thread_worker.h"
 #include "slave.h"
+#include "../util.h"
 
 using namespace ethr;
 
@@ -25,6 +26,8 @@ public:
                         const int &periodMs);
     void writeObject(Slave* slave, const uint8_t& typeId, const std::vector<uint8_t> &objectIds, const std::vector<uint8_t>& values);
     void targetReadReported(uint8_t id, uint8_t typeId, uint8_t typeSize, std::vector<uint8_t> objectIds, uint8_t *data);
+    void rxReported(const std::vector<uint8_t>& bytes);
+    void test(const util::PassTester& passTester);
 private:
     const std::string mPortName;
     MasterThreadWorker mMasterThreadWorker;

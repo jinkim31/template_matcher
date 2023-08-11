@@ -1,6 +1,7 @@
 #include "application.h"
 #include "view/device_navigator.h"
 #include "view/device_view.h"
+#include "view/master_log_view.h"
 
 Application::Application()
 {
@@ -36,6 +37,8 @@ Application::~Application()
 
 void Application::render()
 {
+    //MasterLogView::MasterLogView();
+
     ImGui::ShowDemoWindow();
     DeviceNavigator::DeviceNavigator(model);
 

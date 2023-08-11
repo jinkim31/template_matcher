@@ -7,6 +7,18 @@
 namespace util
 {
 
+class PassTester
+{
+public:
+    PassTester(const int& num){mNum = num; std::cout<<"PassTester("<<num<<") constructed"<<std::endl;}
+    PassTester(const PassTester& passTester){mNum = passTester.mNum; std::cout<<"PassTester("<<mNum<<") copy constructed"<<std::endl;}
+    PassTester(PassTester&& passTester){mNum = passTester.mNum; std::cout<<"PassTester("<<mNum<<") moved"<<std::endl;}
+    ~PassTester(){std::cout<<"PassTester("<<mNum<<") destructed"<<std::endl;}
+    int num() const{return mNum;}
+private:
+    int mNum;
+};
+
 std::string hexStr(uint8_t* data, size_t len);
 std::vector<uint8_t> strToByteArray(std::string &str, size_t len);
 struct InputTextCallback_UserData

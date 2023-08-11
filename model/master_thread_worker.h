@@ -56,7 +56,10 @@ private:
     std::map<std::pair<uint8_t, uint8_t>, ReadTarget> mReadTargets;
     bool mSearchCancelFlag;
     void watch();
-
+    void rxCallback(uint8_t* bytes, size_t& len);
+    void txCallback(uint8_t* bytes, size_t& len);
+    static void callRxCallback(uint8_t* bytes, size_t len, void* arg);
+    static void callTxCallback(uint8_t* bytes, size_t len, void* arg);
 };
 
 #endif

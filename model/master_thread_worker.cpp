@@ -6,6 +6,8 @@ MasterThreadWorker::MasterThreadWorker(EObjectRef<Model> modelRef, EObjectRef<Ma
     mModelRef = modelRef;
     mMasterRef = masterRef;
     mLLinkMaster = LLINK_Master_create();
+    LLINK_Master_setRxCallback(mLLinkMaster, callRxCallback, this);
+    LLINK_Master_setTxCallback(mLLinkMaster, callTxCallback, this);
 }
 
 void MasterThreadWorker::onMovedToThread(EThread &ethread)
@@ -130,4 +132,32 @@ void MasterThreadWorker::writeObject(std::shared_ptr<MasterThreadWorker::WriteTa
         std::cout << "write error: " << error << std::endl;
         return;
     }
+}
+
+void MasterThreadWorker::rxCallback(uint8_t *bytes, size_t &len)
+{
+    std::cout<<"rx"<<std::endl;
+    std::vector<uint8_t> vec;
+    // https://stackoverflow.com/questions/7863603/how-to-make-template-rvalue-reference-parameter-only-bind-to-rvalue-reference
+    //mMasterRef.callQueuedMove(&Master::rxReported, std::move(vec));
+    static int testCount = 0;
+    std::cout<<"test start("<<testCount<<")"<<std::endl;
+    util::PassTester tester(testCount++);
+    std::cout<<"A"<<std::endl;
+    mMasterRef.callQueuedMove(&Master::test, std::move(tester));
+}
+
+void MasterThreadWorker::txCallback(uint8_t *bytes, size_t &len)
+{
+    std::cout<<"tx"<<std::endl;
+}
+
+void MasterThreadWorker::callRxCallback(uint8_t *bytes, size_t len, void *arg)
+{
+    ((MasterThreadWorker*)arg)->rxCallback(bytes, len);
+}
+
+void MasterThreadWorker::callTxCallback(uint8_t *bytes, size_t len, void *arg)
+{
+    ((MasterThreadWorker*)arg)->txCallback(bytes, len);
 }
