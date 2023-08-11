@@ -37,7 +37,10 @@ Application::~Application()
 
 void Application::render()
 {
-    //MasterLogView::MasterLogView();
+    for(const auto& masterLog: model.masterLogs())
+    {
+        MasterLogView::MasterLogView();
+    }
 
     ImGui::ShowDemoWindow();
     DeviceNavigator::DeviceNavigator(model);

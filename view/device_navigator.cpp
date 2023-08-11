@@ -71,6 +71,8 @@ bool DeviceNavigator::MasterView(Model &model, const std::string &portName)
         ImGui::SameLine();
         if(ImGui::Button(("View##"+portName+"id"+std::to_string(id)).c_str()))
             model.setDeviceViewTarget(std::pair<std::string, int>(portName, id));
+        if(ImGui::Button(("Log##"+portName+"id"+std::to_string(id)).c_str()))
+            master->openLog();
     }
     return remove;
 }

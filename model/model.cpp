@@ -102,3 +102,13 @@ std::optional<std::pair<std::string, int>> &Model::deviceViewTarget()
 {
     return mDeviceViewTarget;
 }
+
+void Model::addMasterLog(std::shared_ptr<MasterLog> log)
+{
+    mMasterLogs.push_back(log);
+}
+
+std::vector<std::shared_ptr<MasterLog>> &Model::masterLogs()
+{
+    return mMasterLogs;
+}

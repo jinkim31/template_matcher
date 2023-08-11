@@ -7,6 +7,7 @@
 #include "master_thread_worker.h"
 #include "slave.h"
 #include "../util.h"
+#include "master_log.h"
 
 using namespace ethr;
 
@@ -28,6 +29,7 @@ public:
     void targetReadReported(uint8_t id, uint8_t typeId, uint8_t typeSize, std::vector<uint8_t> objectIds, uint8_t *data);
     void rxReported(const std::vector<uint8_t>& bytes);
     void test(util::PassTester &&passTester);
+    void openLog();
 private:
     const std::string mPortName;
     MasterThreadWorker mMasterThreadWorker;
@@ -35,6 +37,7 @@ private:
     std::optional<bool> mIsOpen;
     Model* mModel;
     std::map<int, std::shared_ptr<Slave>> mSlaves;
+    std::weak_ptr<MasterLog> mLog;
 };
 
 

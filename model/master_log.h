@@ -8,13 +8,10 @@
 class MasterLog
 {
 public:
-    struct PacketInfo
-    {
-        uint8_t id;
 
-    };
 private:
-
+    uint8_t mId;
+    
 };
 
 #endif

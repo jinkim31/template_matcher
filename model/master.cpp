@@ -140,3 +140,15 @@ void Master::test(util::PassTester &&passTester)
 {
     std::cout<<"pass test complete("<<passTester.num()<<")"<<std::endl;
 }
+
+void Master::openLog()
+{
+    if(mLog.expired())
+    {
+        std::cout<<"log doesnt exist, creating one"<<std::endl;
+        auto log = std::make_shared<MasterLog>();
+        mModel->addMasterLog(log);
+        // save a weak ptr so that it can be accessed easely
+        mLog = log;
+    }
+}

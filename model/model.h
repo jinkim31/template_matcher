@@ -42,12 +42,15 @@ public:
     std::queue<std::pair<PopupLevel, std::string>>& popupQueue();
     void setDeviceViewTarget(const std::optional<std::pair<std::string, int>> &target);
     std::optional<std::pair<std::string, int>>& deviceViewTarget();
+    void addMasterLog(std::shared_ptr<MasterLog> log);
+    std::vector<std::shared_ptr<MasterLog>>& masterLogs();
 private:
     std::map<std::string, std::shared_ptr<Master>> mMasters;
     std::vector<std::string> mPortNames;
     SlaveSearchInfo mSlaveSearchInfo;
     std::queue<std::pair<PopupLevel, std::string>> mPopupQueue;
     std::optional<std::pair<std::string, int>> mDeviceViewTarget;
+    std::vector<std::shared_ptr<MasterLog>> mMasterLogs;
 };
 
 #endif
