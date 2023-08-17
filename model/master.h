@@ -27,7 +27,8 @@ public:
                         const int &periodMs);
     void writeObject(Slave* slave, const uint8_t& typeId, const std::vector<uint8_t> &objectIds, const std::vector<uint8_t>& values);
     void targetReadReported(uint8_t id, uint8_t typeId, uint8_t typeSize, std::vector<uint8_t> objectIds, uint8_t *data);
-    void rxReported(const std::vector<uint8_t>& bytes);
+    void rxReported(std::vector<uint8_t>&& bytes);
+    void txReported(std::vector<uint8_t>&& bytes);
     void test(util::PassTester &&passTester);
     void openLog();
 private:

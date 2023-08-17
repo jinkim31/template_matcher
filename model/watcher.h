@@ -1,0 +1,11 @@
+#ifndef LIGHTLINK_VIEW_WATCHER_H
+#define LIGHTLINK_VIEW_WATCHER_H
+
+
+class watcher
+{
+
+};
+
+
+#endif //LIGHTLINK_VIEW_WATCHER_H

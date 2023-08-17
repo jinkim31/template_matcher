@@ -17,8 +17,9 @@ void DeviceView::DeviceView(Slave &slave)
 
     for(auto& [typeId, typedList] : slave.objectTable())
     {
+        ImGui::PushID(typedList.typeId);
         ImGui::Text("%s (%d)", typedList.typeName.c_str(),  typedList.typeId); ImGui::SameLine();
-        if(ImGui::InputInt(("watch Period(ms)##"+std::to_string(typeId)).c_str(), &(typedList.watchPeriodMs), 10))
+        if(ImGui::InputInt("watch Period(ms)", &(typedList.watchPeriodMs), 10))
         {
             slave.addTypedReadTarget(typeId);
             std::cout<<"period changed to "<<typedList.watchPeriodMs<<std::endl;
@@ -38,6 +39,7 @@ void DeviceView::DeviceView(Slave &slave)
 
             for (auto &object: typedList.objects)
             {
+                ImGui::PushID(object.id);
                 ImGui::TableNextRow();
                 ImGui::TableSetColumnIndex(0);
                 ImGui::Text("%d", typedList.typeId);
@@ -56,17 +58,17 @@ void DeviceView::DeviceView(Slave &slave)
                 {
                     case LLINK_ACCESS_READWRITE:
                         if(util::InputTextStdString(
-                                ("test##text" +std::to_string(typeId)+"/"+std::to_string(object.id)).c_str(),
+                                "##watch",
                                 &object.rawText,
                                 ImGuiInputTextFlags_AutoSelectAll | ImGuiInputTextFlags_EnterReturnsTrue,
                                 NULL,
                                 NULL))
                         {
-                            std::cout<<"new text: "<<object.rawText<<std::endl;
                             auto byteArray = util::strToByteArray(object.rawText, typedList.typeSize);
                             for(const auto& byte : byteArray)std::cout<< std::hex << (int)byte <<" ";
                             std::cout<<std::endl;
                             slave.writeObject(typeId, {object.id}, {byteArray});
+                            object.rawText = "writing...";
                         }
                         break;
                     case LLINK_ACCESS_WRITE:
@@ -76,9 +78,14 @@ void DeviceView::DeviceView(Slave &slave)
                         ImGui::Text("%s", object.dataValid ? object.rawText.c_str() : "N/A");
                         break;
                 }
+
+                ImGui::PopID();
             }
 
             ImGui::EndTable();
+
+
         }
+        ImGui::PopID();
     }
 }

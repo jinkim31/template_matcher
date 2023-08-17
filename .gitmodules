@@ -4,3 +4,9 @@
 [submodule "lib/event_thread"]
 	path = lib/event_thread
 	url = https://github.com/jinkim31/event_thread.git
+[submodule "lib/iconFontCppHeaders"]
+	path = lib/iconFontCppHeaders
+	url = https://github.com/juliettef/IconFontCppHeaders.git
+[submodule "lib/sync"]
+	path = lib/sync
+	url = https://github.com/jinkim31/sync.git

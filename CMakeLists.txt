@@ -3,6 +3,7 @@ project(lightlink_view)
 set(CMAKE_CXX_STANDARD 20)
 add_subdirectory(lib/lightlink)
 add_subdirectory(lib/event_thread)
+include_directories(lib/iconFontCppHeaders)
 
 include(FetchContent)
 Set(FETCHCONTENT_QUIET FALSE)
@@ -29,6 +30,7 @@ imgui_bundle_add_app(lightlink_view
         view/device_navigator.cpp
         view/device_view.cpp
         view/master_log_view.cpp
+        view/widgets.cpp
         util.cpp
         )
 

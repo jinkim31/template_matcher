@@ -1,30 +1,38 @@
 #include "device_navigator.h"
+#include "widgets.h"
+#include <IconsMaterialDesign.h>
 
 void DeviceNavigator::DeviceNavigator(Model& model)
 {
-    ImGui::Begin("Device Navigator");
+    bool open = true;
+    ImGui::Begin("Device Navigator", &open, ImGuiWindowFlags_MenuBar);
 
-    if(ImGui::Button("Add Master"))
+    if(ImGui::BeginMenuBar())
     {
-        model.updatePortNames();
-        ImGui::OpenPopup("Add Master");
+        if(ImGui::MenuItem(ICON_MD_ADD "Add Master"))
+        {
+            model.updatePortNames();
+            ImGui::OpenPopup("Add Master");
+        }
+
+        if(ImGui::BeginPopupModal("Add Master", NULL, ImGuiWindowFlags_AlwaysAutoResize)){
+            AddMasterModal(model);ImGui::EndPopup();}
+
+        ImGui::EndMenuBar();
     }
 
     std::vector<std::string> masterRemoveList;
     for(auto& [portName, master] : model.getMasters())
     {
+        ImGui::PushID(portName.c_str());
         if(MasterView(model, portName))
             masterRemoveList.push_back(portName);
+        ImGui::PopID();
     }
     
     for(const auto& masterRemovePortName : masterRemoveList)
         model.removeMaster(masterRemovePortName);
 
-    // MODALS //////////////////////////////////////////////////////////////////////////////////////////////////////////
-    if(ImGui::BeginPopupModal("Add Master", NULL, ImGuiWindowFlags_AlwaysAutoResize)){
-        AddMasterModal(model);ImGui::EndPopup();}
-    if(ImGui::BeginPopupModal("Search", NULL, ImGuiWindowFlags_AlwaysAutoResize)){
-        SearchSlaveModal(model);ImGui::EndPopup();}
     ImGui::End();
 }
 
@@ -32,19 +40,29 @@ bool DeviceNavigator::MasterView(Model &model, const std::string &portName)
 {
     auto master = model.getMaster(portName).lock();
     bool remove = false;
+    ImGuiStorage* storage = ImGui::GetStateStorage();
+    bool* slavesShown = storage->GetBoolRef(ImGui::GetItemID(), true);
+    // background
+    widget::BackgroundContent(ImColor(ImGui::GetStyleColorVec4(ImGuiCol_Header)));
 
-    // master title
-    ImGui::Text("Master at [%s]", portName.c_str());
+    // toggle button
+    if (widget::IconButton(*slavesShown? ICON_MD_EXPAND_MORE : ICON_MD_CHEVRON_RIGHT))
+    {
+        *slavesShown = !*slavesShown;
+    }ImGui::SameLine();
+
+    // LED
+    widget::Led(widget::LedColor::GREEN);
     ImGui::SameLine();
 
-    // open close button text
-    std::string openBtnText;
-    if(!master->isOpen().has_value()) openBtnText = "Working";
-    else if(master->isOpen().value()) openBtnText = "Close";
-    else openBtnText = "Open";
+    // master title
+    ImGui::AlignTextToFramePadding();
+    ImGui::Text("%s", portName.c_str());
+    ImGui::SameLine();
 
     // open close button
-    if(ImGui::Button((openBtnText+"##"+portName).c_str()))
+    ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing,  ImVec2(0.0f, 0.0f));
+    if(widget::IconButton(master->isOpen().has_value() ? (master->isOpen().value() ? ICON_MD_STOP : ICON_MD_PLAY_ARROW) : ICON_MD_HOURGLASS_FULL ))
     {
         if(!master->isOpen().has_value()){}
         else if(master->isOpen().value()) master->close();
@@ -53,27 +71,45 @@ bool DeviceNavigator::MasterView(Model &model, const std::string &portName)
 
     // search button
     if(!master->isOpen().has_value() || !master->isOpen().value()) ImGui::BeginDisabled();
-    if(ImGui::Button(("Search##"+portName).c_str()))
+    if(widget::IconButton(ICON_MD_SEARCH))
     {
         model.getSlaveSearchInfo().mMaster = master;
         ImGui::OpenPopup("Search");
     } ImGui::SameLine();
     if(!master->isOpen().has_value() || !master->isOpen().value())  ImGui::EndDisabled();
 
+    // log button
+    if(widget::IconButton(ICON_MD_DESCRIPTION))
+    {
+        master->openLog();
+    }ImGui::SameLine();
+
     // remove button
-    if(ImGui::Button(("Remove##"+portName).c_str()))
+    if(widget::IconButton(ICON_MD_DELETE))
         remove = true;
+    ImGui::PopStyleVar();
+
+    // search popup
+    if(ImGui::BeginPopupModal("Search", NULL, ImGuiWindowFlags_AlwaysAutoResize)){
+        SearchSlaveModal(model);ImGui::EndPopup();}
 
     // slaves
+    if(!*slavesShown)
+        return remove;
+    ImGui::Indent();
     for(auto& [id, slave] : master->getSlaves())
     {
-        ImGui::Text("ID: %d [%d]", slave->id(), slave->baudRate());
+        ImGui::PushID(slave->id());
+        ImGui::AlignTextToFramePadding();
+        ImGui::Bullet();
+        ImGui::Text("ID: %d (%d)", slave->id(), slave->baudRate());
         ImGui::SameLine();
-        if(ImGui::Button(("View##"+portName+"id"+std::to_string(id)).c_str()))
+        if(widget::IconButton(ICON_MD_VISIBILITY))
             model.setDeviceViewTarget(std::pair<std::string, int>(portName, id));
-        if(ImGui::Button(("Log##"+portName+"id"+std::to_string(id)).c_str()))
-            master->openLog();
+        ImGui::PopID();
     }
+
+    ImGui::Unindent();
     return remove;
 }
 

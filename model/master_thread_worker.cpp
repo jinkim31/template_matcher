@@ -136,12 +136,18 @@ void MasterThreadWorker::writeObject(std::shared_ptr<MasterThreadWorker::WriteTa
 
 void MasterThreadWorker::rxCallback(uint8_t *bytes, size_t &len)
 {
-    std::cout<<"rx"<<std::endl;
+    std::vector<uint8_t> bytesVec;
+    bytesVec.reserve(len);
+    std::copy(bytes, bytes + len, std::back_inserter(bytesVec));
+    mMasterRef.callQueuedMove(&Master::rxReported, std::move(bytesVec));
 }
 
 void MasterThreadWorker::txCallback(uint8_t *bytes, size_t &len)
 {
-    std::cout<<"tx"<<std::endl;
+    std::vector<uint8_t> bytesVec;
+    bytesVec.reserve(len);
+    std::copy(bytes, bytes + len, std::back_inserter(bytesVec));
+    mMasterRef.callQueuedMove(&Master::txReported, std::move(bytesVec));
 }
 
 void MasterThreadWorker::callRxCallback(uint8_t *bytes, size_t len, void *arg)

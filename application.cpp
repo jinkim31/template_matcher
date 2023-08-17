@@ -2,6 +2,7 @@
 #include "view/device_navigator.h"
 #include "view/device_view.h"
 #include "view/master_log_view.h"
+#include <IconsMaterialDesign.h>
 
 Application::Application()
 {
@@ -27,6 +28,24 @@ Application::Application()
     // dock
     runnerParams.imGuiWindowParams.enableViewports = false;
 
+    // fonts
+    runnerParams.callbacks.LoadAdditionalFonts = []{
+        std::cout<<"font!"<<std::endl;
+        ImGuiIO& io = ImGui::GetIO();
+
+        float baseFontSize = 15.0f*2;
+        float iconFontSize = baseFontSize*1.2;
+        io.Fonts->AddFontFromFileTTF("assets/fonts/Roboto/Roboto-Regular.ttf", baseFontSize);
+        static const ImWchar icons_ranges[] = { ICON_MIN_MD, ICON_MAX_16_MD, 0 };
+        ImFontConfig icons_config;
+        icons_config.GlyphOffset = {0, 10};
+        icons_config.MergeMode = true;
+        icons_config.PixelSnapH = true;
+        icons_config.GlyphMinAdvanceX = iconFontSize;
+        io.Fonts->AddFontFromFileTTF( "assets/fonts/" FONT_ICON_FILE_NAME_MD, iconFontSize, &icons_config, icons_ranges );
+        // use FONT_ICON_FILE_NAME_FAR if you want regular instead of solid
+    };
+
     ImmApp::Run(runnerParams, addOnsParams);
 }
 
@@ -39,7 +58,7 @@ void Application::render()
 {
     for(const auto& masterLog: model.masterLogs())
     {
-        MasterLogView::MasterLogView();
+        MasterLogView::MasterLogView(*masterLog);
     }
 
     ImGui::ShowDemoWindow();

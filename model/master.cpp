@@ -131,10 +131,21 @@ void Master::writeObject(Slave *slave, const uint8_t &typeId, const std::vector<
     mMasterThreadWorker.callQueued(&MasterThreadWorker::writeObject, writeTarget);
 }
 
-void Master::rxReported(const std::vector<uint8_t> &bytes)
+void Master::rxReported(std::vector<uint8_t> &&bytes)
 {
-    std::cout<<"rx reported"<<std::endl;
+    if(mLog.expired())
+        return;
+    mLog.lock()->addLog(MasterLog::RX, bytes);
 }
+
+
+void Master::txReported(std::vector<uint8_t> &&bytes)
+{
+    if(mLog.expired())
+        return;
+    mLog.lock()->addLog(MasterLog::TX, bytes);
+}
+
 
 void Master::test(util::PassTester &&passTester)
 {
