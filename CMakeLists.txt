@@ -3,8 +3,9 @@ project(lightlink_view)
 set(CMAKE_CXX_STANDARD 20)
 add_subdirectory(lib/lightlink)
 add_subdirectory(lib/event_thread)
+add_subdirectory(lib/sync)
 include_directories(lib/iconFontCppHeaders)
-
+find_library(libnfd REQUIRED NAMES libnfd.a HINTS lib/nativefiledialog)
 include(FetchContent)
 Set(FETCHCONTENT_QUIET FALSE)
 FetchContent_Declare(
@@ -22,21 +23,17 @@ set(HELLOIMGUI_WIN32_NO_CONSOLE OFF)
 imgui_bundle_add_app(lightlink_view
         main.cpp
         application.cpp
-        model/master.cpp
         model/model.cpp
-        model/slave.cpp
-        model/master_thread_worker.cpp
-        model/master_log.cpp
-        view/device_navigator.cpp
-        view/device_view.cpp
-        view/master_log_view.cpp
-        view/widgets.cpp
-        util.cpp
+        model/vision_worker.cpp
+        view/view.cpp
         )
 
 target_link_libraries(lightlink_view PRIVATE
         lightlink
         event_thread
+        sync
+        ${libnfd}
         )
 target_include_directories(lightlink_view PRIVATE
-        lib/IconFontCppHeaders)
+        lib/IconFontCppHeaders
+        lib/nativefiledialog)

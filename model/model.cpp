@@ -1,114 +1,98 @@
 #include "model.h"
-
-#include <utility>
-
-std::vector<const char*> Model::BAUD_RATE_STRINGS = {"1200","2400","4800","9600","14400","19200","38400","57600","115200","128000","256000"};
+#include <nfd.h>
+#include <iostream>
+#include <epromise.h>
 
 Model::Model()
 {
-    mSlaveSearchInfo.isDone = false;
-    mSlaveSearchInfo.mBaudRateIdx = 8; // 115200
-    mSlaveSearchInfo.currentPingingID = -1;
-    mDeviceViewTarget = std::nullopt;
+    mICurrentShowingImage = 0;
+    mParam.ShowOptionsButton = false;
+    mParam.ShowSchoolPaperBackground = false;
+    mParam.ShowGrid = false;
+    mParam.ShowImageInfo = false;
+    mParam.ShowAlphaChannelCheckerboard = true;
+    mParam.ShowZoomButtons = true;
+    mParam.ShowOptionsPanel = false;
+    mParam.RefreshImage = false;
+    mParam.DrawValuesOnZoomedPixels = false;
+    mParam.ShowOptionsInTooltip = false;
+    mParam.ShowPixelInfo = false;
+    mVisionWorker.moveToThread(mVisionThread);
+    mVisionThread.start();
 }
 
 Model::~Model()
 {
-    for(auto const& [portName, master] : mMasters)
-        master->removeFromThread();
+    mVisionThread.stop();
+    mVisionWorker.removeFromThread();
 }
 
-bool Model::addMaster(const std::string &portName)
+void Model::loadImage()
 {
-    if(mMasters.find(portName) != mMasters.end())
-        return false;
-    auto master = std::make_shared<Master>(portName, this);
-    master->moveToThread(EThread::mainThread());
-    mMasters.insert({portName,master});
-    return true;
+    // file dialog
+    nfdpathset_t paths;
+    nfdresult_t result = NFD_OpenDialogMultiple( NULL, NULL, &paths );
+    if(result != NFD_OKAY)
+        return;
+    std::vector<std::string> pathsVec;
+    pathsVec.reserve(paths.count);
+    for(int i=0; i<paths.count; i++)
+        pathsVec.emplace_back(NFD_PathSet_GetPath(&paths, i));
+    NFD_PathSet_Free(&paths);
+
+    // load images
+    auto promise = new ethr::EPromiseMove(mVisionWorker.ref<VisionWorker>(), &VisionWorker::loadImages);
+    promise->then<int>(this->uref(), [&](std::vector<cv::Mat>&& images){
+        std::cout<<images[0].size<<std::endl;
+        mImages = std::move(images);
+        return 0;
+    });
+    promise->execute(std::move(pathsVec));
 }
 
-void Model::removeMaster(const std::string &portName)
+void Model::templateMatch(cv::Point point)
 {
-    mMasters[portName]->removeFromThread();
-    mMasters.erase(portName);
-}
+    const cv::Point templateSize(50, 50);
+    const int upsampleRate = 20;
+    const int patchMarginPx = 2;
 
-std::weak_ptr<Master> Model::getMaster(const std::string &portName)
-{
-    return mMasters[portName];
-}
+    // cut out template from the template image
+    cv::Mat templ = mImages[mICurrentShowingImage](cv::Rect(point - templateSize / 2, point + templateSize / 2));
 
-void Model::updatePortNames()
-{
-    mPortNames.clear();
-    char** portNamesCStr;
-    size_t nPorts = LLINK_Master_getPortNames(&portNamesCStr);
-    for(int i=0; i<nPorts; i++)
-        mPortNames.emplace_back(portNamesCStr[i]);
-    LLINK_Master_freePortNames(portNamesCStr);
-}
+    // cut out part of images double the size of patch
+    std::vector<cv::Mat> patches;
+    for(const auto& image : mImages)
+        patches.push_back(image(cv::Rect(
+                point - templateSize / 2 - cv::Point(patchMarginPx, patchMarginPx),
+                point + templateSize / 2 + cv::Point(patchMarginPx, patchMarginPx))));
 
-const std::vector<std::string>& Model::getPortNames()
-{
-    return mPortNames;
-}
+    // perform template matching
+    auto promise = new ethr::EPromiseMove(mVisionWorker.ref<VisionWorker>(), &VisionWorker::templateMatch);
+    promise->then<int>(this->uref(), [&](std::vector<cv::Point2f>&& points){
+        mResult.xs.clear();
+        mResult.ys.clear();
+        cv::Point2f pointSum;
+        for(auto& point : points)
+        {
+            point -= cv::Point2f(patchMarginPx, patchMarginPx);
+            mResult.xs.push_back(point.x);
+            mResult.ys.push_back(point.y);
+            std::cout<<point<<std::endl;
+            pointSum += point;
+        }
 
-const std::map<std::string, std::shared_ptr<Master>> &Model::getMasters()
-{
-    return mMasters;
-}
+        // mean
+        mResult.mean = pointSum / (float)points.size();
 
-Model::SlaveSearchInfo &Model::getSlaveSearchInfo()
-{
-    return mSlaveSearchInfo;
-}
-
-void Model::searchSlave()
-{
-    auto master = mSlaveSearchInfo.mMaster.lock();
-    master->search(std::stoi(BAUD_RATE_STRINGS[mSlaveSearchInfo.mBaudRateIdx]));
-    mSlaveSearchInfo.isDone=std::nullopt;
-}
-
-void Model::slaveSearchProgressReported(int nTotalPings, int nPings)
-{
-    mSlaveSearchInfo.currentPingingID = nPings;
-}
-
-void Model::slaveFoundReported(std::shared_ptr<Slave> slave)
-{
-    slave->setMaster(mSlaveSearchInfo.mMaster);
-    mSlaveSearchInfo.mMaster.lock()->addSlave(std::move(slave));
-}
-
-
-std::queue<std::pair<Model::PopupLevel, std::string>> &Model::popupQueue()
-{
-    return mPopupQueue;
-}
-
-void Model::addPopup(Model::PopupLevel popupLevel, const std::string &message)
-{
-    mPopupQueue.emplace(popupLevel, message);
-}
-
-void Model::setDeviceViewTarget(const std::optional<std::pair<std::string, int>> &target)
-{
-    mDeviceViewTarget = target;
-}
-
-std::optional<std::pair<std::string, int>> &Model::deviceViewTarget()
-{
-    return mDeviceViewTarget;
-}
-
-void Model::addMasterLog(std::shared_ptr<MasterLog> log)
-{
-    mMasterLogs.push_back(log);
-}
-
-std::vector<std::shared_ptr<MasterLog>> &Model::masterLogs()
-{
-    return mMasterLogs;
+        // PCA
+        cv::PCA pca(cv::Mat(points.size(),2,CV_32F,points.data()), cv::Mat(), cv::PCA::DATA_AS_ROW);
+        for (int i = 0; i < 2; i++)
+        {
+            mResult.eigenvectors[i] = cv::Point2d(pca.eigenvectors.at<float>(i, 0),
+                                    pca.eigenvectors.at<float>(i, 1));
+            mResult.eigenvalues[i] = pca.eigenvalues.at<float>(i);
+        }
+        return 0;
+    });
+    promise->execute(std::move(templ), std::move(patches), int(upsampleRate));
 }

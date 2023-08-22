@@ -1,9 +1,9 @@
-#include "util.h"
+#include "vutil.h"
 #include <iomanip>
 #include <sstream>
 #include <string>
 
-std::string util::hexStr(uint8_t *data, size_t len)
+std::string vutil::hexStr(uint8_t *data, size_t len)
 {
     std::stringstream ss;
     ss << std::hex << std::uppercase;
@@ -12,7 +12,7 @@ std::string util::hexStr(uint8_t *data, size_t len)
     return ss.str();
 }
 
-bool util::InputTextStdString(const char *label, std::string *str, ImGuiInputTextFlags flags,
+bool vutil::InputTextStdString(const char *label, std::string *str, ImGuiInputTextFlags flags,
                               ImGuiInputTextCallback callback, void *user_data)
 {
     IM_ASSERT((flags & ImGuiInputTextFlags_CallbackResize) == 0);
@@ -25,7 +25,7 @@ bool util::InputTextStdString(const char *label, std::string *str, ImGuiInputTex
     return ImGui::InputText(label, (char*)str->c_str(), str->capacity() + 1, flags, InputTextCallback, &cb_user_data);
 }
 
-std::vector<uint8_t> util::strToByteArray(std::string &str, size_t len)
+std::vector<uint8_t> vutil::strToByteArray(std::string &str, size_t len)
 {
     str.erase(remove_if(str.begin(), str.end(), isspace), str.end());
     if(str.length()%2==1)
@@ -41,6 +41,6 @@ std::vector<uint8_t> util::strToByteArray(std::string &str, size_t len)
     bytes.resize(len);
     std::reverse(bytes.begin(), bytes.end());
 
-
     return bytes;
 }
+

@@ -1,56 +1,32 @@
 #ifndef LIGHTLINK_VIEW_MODEL_H
 #define LIGHTLINK_VIEW_MODEL_H
 
-#include <iostream>
-#include <vector>
-#include <memory>
 #include <ethread.h>
-#include <lightlink_master.h>
-#include "master.h"
+#include <opencv2/opencv.hpp>
+#include <immvision/image.h>
+#include "vision_worker.h"
 
-class Model : public EObject
+class Model : public ethr::EObject
 {
-public:
-    enum class PopupLevel
+    struct Result
     {
-        INFO,
-        WARNING,
-        ERROR,
+        std::vector<float> xs, ys;
+        cv::Point2f mean;
+        cv::Point2d eigenvectors[2];
+        double eigenvalues[2];
     };
-
+public:
     Model();
     ~Model();
-    static std::vector<const char*> BAUD_RATE_STRINGS;
-    struct SlaveSearchInfo
-    {
-        std::weak_ptr<Master> mMaster;
-        int mBaudRateIdx;
-        std::optional<bool> isDone;
-        int currentPingingID;
-    };
-    bool addMaster(const std::string& portName);
-    void removeMaster(const std::string& portName);
-    std::weak_ptr<Master> getMaster(const std::string& portName);
-    const std::map<std::string, std::shared_ptr<Master>>& getMasters();
-    void updatePortNames();
-    const std::vector<std::string>& getPortNames();
-    SlaveSearchInfo& getSlaveSearchInfo();
-    void searchSlave();
-    void slaveSearchProgressReported(int nTotalPings, int nPings);
-    void slaveFoundReported(std::shared_ptr<Slave> slave);
-    void addPopup(PopupLevel popupLevel, const std::string& message);
-    std::queue<std::pair<PopupLevel, std::string>>& popupQueue();
-    void setDeviceViewTarget(const std::optional<std::pair<std::string, int>> &target);
-    std::optional<std::pair<std::string, int>>& deviceViewTarget();
-    void addMasterLog(std::shared_ptr<MasterLog> log);
-    std::vector<std::shared_ptr<MasterLog>>& masterLogs();
+    void loadImage();
+    void templateMatch(cv::Point point);
+    std::vector<cv::Mat> mImages;
+    ImmVision::ImageParams mParam;
+    int mICurrentShowingImage;
+    Result mResult;
 private:
-    std::map<std::string, std::shared_ptr<Master>> mMasters;
-    std::vector<std::string> mPortNames;
-    SlaveSearchInfo mSlaveSearchInfo;
-    std::queue<std::pair<PopupLevel, std::string>> mPopupQueue;
-    std::optional<std::pair<std::string, int>> mDeviceViewTarget;
-    std::vector<std::shared_ptr<MasterLog>> mMasterLogs;
+    VisionWorker mVisionWorker;
+    ethr::EThread mVisionThread;
 };
 
 #endif

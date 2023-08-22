@@ -10,3 +10,6 @@
 [submodule "lib/sync"]
 	path = lib/sync
 	url = https://github.com/jinkim31/sync.git
+[submodule "lib/nativefiledialog"]
+	path = lib/nativefiledialog
+	url = https://github.com/mlabbe/nativefiledialog.git

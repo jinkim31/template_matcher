@@ -1,10 +1,10 @@
-#ifndef LIGHTLINK_VIEW_UTIL_H
-#define LIGHTLINK_VIEW_UTIL_H
+#ifndef LIGHTLINK_VIEW_VUTIL_H
+#define LIGHTLINK_VIEW_VUTIL_H
 
 #include <iostream>
 #include <immapp/immapp.h>
 
-namespace util
+namespace vutil
 {
 
 class PassTester
@@ -51,6 +51,16 @@ static int InputTextCallback(ImGuiInputTextCallbackData* data)
 
 bool InputTextStdString(const char* label, std::string* str, ImGuiInputTextFlags flags, ImGuiInputTextCallback callback, void* user_data);
 
+template <typename T>
+void limit(T &var, const T& min, const T& max)
+{
+    if(var < min)
+        var = min;
+    else if (max < var)
+        var = max;
+}
+
+void print(){std::cout<<"print"<<std::endl;}
 }
 
 #endif
