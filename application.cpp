@@ -30,8 +30,7 @@ Application::Application()
     // fonts
     runnerParams.callbacks.LoadAdditionalFonts = []{
         ImGuiIO& io = ImGui::GetIO();
-
-        float baseFontSize = 15.0f;
+        float baseFontSize = 15.0f * 2.0;
         float iconFontSize = baseFontSize*1.2;
         io.Fonts->AddFontFromFileTTF("assets/fonts/Roboto/Roboto-Regular.ttf", baseFontSize);
         static const ImWchar icons_ranges[] = { ICON_MIN_MD, ICON_MAX_16_MD, 0 };
